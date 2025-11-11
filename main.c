@@ -69,13 +69,7 @@ void MX_USB_HOST_Process(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
-uint8_t rx_buff[10];
-int uart_counter = 0;
-uint8_t flag_PE = 0;
-uint8_t flag_NE = 0;
-uint8_t flag_FE = 0;
-uint8_t flag_ORE = 0;
-uint32_t uart_error = 0;
+uint8_t tx_buff[]={0,1,2,3,4,5,6,7,8,9};
 
 /* USER CODE END 0 */
 
@@ -115,8 +109,6 @@ int main(void)
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
 
-  HAL_UART_Receive_IT(&huart2, rx_buff, 10);
-
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -127,6 +119,12 @@ int main(void)
     MX_USB_HOST_Process();
 
     /* USER CODE BEGIN 3 */
+
+    HAL_UART_Transmit_IT(&huart2, tx_buff, 10);
+	tx_buff[3]++;
+	HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_12);
+    HAL_Delay(1000);
+
   }
   /* USER CODE END 3 */
 }
@@ -414,47 +412,6 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
-{
-  HAL_UART_Receive_IT(&huart2, rx_buff, 10);
-  uart_counter++;
-  flag_PE = 0;
-  flag_NE = 0;
-  flag_FE = 0;
-  flag_ORE = 0;
-  uart_error = 0;
-  HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_12);
-  HAL_GPIO_WritePin(GPIOD, GPIO_PIN_13, 0);
-}
-
-void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
-{
-    uart_error = huart->ErrorCode;		// ErrorCode = donanımın rapor ettiği hata kodu
-    if (uart_error & HAL_UART_ERROR_PE)
-        flag_PE = 1;
-    else
-        flag_PE = 0;
-
-    if (uart_error & HAL_UART_ERROR_NE)
-        flag_NE = 1;
-    else
-        flag_NE = 0;
-
-    if (uart_error & HAL_UART_ERROR_FE)
-        flag_FE = 1;
-    else
-        flag_FE = 0;
-
-    if (uart_error & HAL_UART_ERROR_ORE)
-        flag_ORE = 1;
-    else
-        flag_ORE = 0;
-
-    HAL_GPIO_WritePin(GPIOD, GPIO_PIN_13, 1);
-    HAL_UART_Abort(huart);		// RX ve TX işlemlerini durdurur
-    HAL_UART_Receive_IT(&huart2, rx_buff, 10);
-}
 
 /* USER CODE END 4 */
 
